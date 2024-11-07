@@ -1,32 +1,60 @@
 import java.util.Random;
 
+
 public class MLP {
 
     private int qtdIn, qtdH, qtdOut;
     private double ni;
     private double[][] wh, wo;
 
-    public MLP(int qtdIn, int qtdH, int qtdOut, double Ni) {
-        this.qtdIn = qtdIn;  // +1 para o bias
+    public MLP(int qtdIn, int qtdH, int qtdOut, double ni) {
+        this.qtdIn = qtdIn;
         this.qtdOut = qtdOut;
         this.qtdH = qtdH;
         this.ni = ni;
-        this.wh = new double[this.qtdIn + 1][qtdH];  // Pesos da entrada para a camada oculta
-        this.wo = new double[this.qtdH + 1][qtdOut]; // Pesos da camada oculta para a saída
+        this.wh = new double[this.qtdIn + 1][qtdH];
+        this.wo = new double[this.qtdH + 1][qtdOut];
 
         Random rand = new Random();
-        // Inicializa pesos entre a entrada e a camada oculta
         for (int i = 0; i < qtdIn; i++) {
-            for (int j = 0; j < qtdH - 1; j++) {  // -1 para excluir o bias
-                wh[i][j] = rand.nextDouble() - 0.3;  // Valores entre -0.3 e 0.3
+            for (int j = 0; j < qtdH - 1; j++) {
+                wh[i][j] = rand.nextDouble() - 0.3;
             }
         }
-        // Inicializa pesos entre a camada oculta e a saída
         for (int i = 0; i < qtdH; i++) {
             for (int j = 0; j < qtdOut; j++) {
-                wo[i][j] = rand.nextDouble() - 0.3;  // Valores entre -0.3 e 0.3
+                wo[i][j] = rand.nextDouble() - 0.3;
             }
         }
+    }
+
+    public double[] testar(double[] xIn, double[] y) {
+        double[] x = new double[xIn.length + 1];
+        x[xIn.length] = 1;
+        //copiar os dados de xIn em X;
+        for (int i = 0; i < xIn.length; i++) {
+            x[i] = xIn[i];
+        }
+        double[] H = new double[qtdH + 1];
+        H[qtdH] = 1;
+        int soma;
+        for (int j = 0; j < qtdH; j++) {
+            soma = 0;
+            for (int i = 0; i < x.length; i++) {
+                soma += x[i] * wh[i][j];
+            }
+            H[j] = sig(soma);
+        }
+        double[] out = new double[qtdOut];
+        for (int j = 0; j < out.length; j++) {
+            soma = 0;
+            for (int i = 0; i < H.length; i++) {
+                soma += H[i] * wo[i][j];
+            }
+            out[j] = sig(soma);
+        }
+
+        return out;
     }
 
     public double[] treinar(double[] xIn, double[] y) {
@@ -72,7 +100,7 @@ public class MLP {
             }
 
         }
-        for (int i = 0; i < qtdH; i++) {
+        for (int i = 0; i < qtdH + 1; i++) {
             for (int j = 0; j < qtdOut; j++) {
                 wo[i][j] += ni * deltaO[j] * H[i];
             }
@@ -83,34 +111,4 @@ public class MLP {
     private double sig(double x) {
         return 1.0 / (1.0 + Math.exp(-x));
     }
-
-    public double[] testar(double[] xIn, double[] y) {
-        double[] x = new double[xIn.length + 1];
-        x[xIn.length] = 1;
-        //copiar os dados de xIn em X;
-        for (int i = 0; i < xIn.length; i++) {
-            x[i] = xIn[i];
-        }
-        double[] H = new double[qtdH + 1];
-        H[qtdH] = 1;
-        int soma;
-        for (int j = 0; j < qtdH; j++) {
-            soma = 0;
-            for (int i = 0; i < x.length; i++) {
-                soma += x[i] * wh[i][j];
-            }
-            H[j] = sig(soma);
-        }
-        double[] out = new double[qtdOut];
-        for (int j = 0; j < out.length; j++) {
-            soma = 0;
-            for (int i = 0; i < H.length; i++) {
-                soma += H[i] * wo[i][j];
-            }
-            out[j] = sig(soma);
-        }
-
-        return out;
-    }
-
 }
